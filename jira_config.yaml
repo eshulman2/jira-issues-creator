@@ -1,0 +1,69 @@
+# jira_config.yaml
+# ----------------
+# This configuration file contains settings required for interacting with the Jira API.
+# It includes the Jira URL, API base URL, authentication token, and field mappings.
+# Ensure that the values are correctly set according to your Jira instance and project requirements.
+####################################################################################################
+
+# Jira instance settings
+jira_url: https://issues.redhat.com # Base URL of your Jira instance
+jira_api_base_url: rest/api/2 # Base URL for Jira API requests. Change it if needed
+jira_token: <your_jira_api_token> # API token for authenticating Jira requests
+
+# Mappings and formats for Jira issue fields
+jira_special_fields:
+  custom_field_mapping:
+    # Dictionary mapping specific field names to Jira custom field IDs
+    epicLink: customfield_12311140 # Custom field ID for linking to an epic
+    epicName: customfield_12311141 # Custom field ID for the epic name
+    originalStoryPoints: customfield_12314040 # Custom field ID for original story points
+    storyPoints: customfield_12310243 # Custom field ID for story points
+    sprint: customfield_12310940 # Custom field ID for the sprint field
+    key_format_fields: {} # Define fields that require "key" format
+    name_format_fields: {} # Define fields that require "name" format
+
+  key_format_fields: # Define fields that require "key" format
+    - components # Field for components
+    - fixVersions # Field for fix versions
+    - labels # Field for labels
+    - project # Field for project
+    - versions # Field for versions
+
+  name_format_fields: # Define fields that require "name" format
+    - assignee # Field for assignee
+    - issuetype # Field for issue type
+    - priority # Field for priority
+    - reporter # Field for reporter
+    - resolution # Field for resolution
+    - status # Field for status
+
+  post_creation_update_fields:
+    - issuelinks
+    - originalStoryPoints
+    - storyPoints
+    - resolution
+    - sprint
+    - status
+  # Add more other field mappings as needed.
+
+#################################################################################################################################
+# Explanation of the configuration fields:
+# - jira_url: The base URL of your Jira instance. Replace 'your-jira-instance.atlassian.net' with your actual Jira URL.
+# - jira_api_base_url: The base URL for Jira API requests. '/rest/api/2' is the standard for Jira Cloud API v2.
+# - jira_token: The API token used for authenticating requests to Jira. Obtain this token from your Jira account settings.
+#   You can get a Jira API token from -
+#   https://issues.redhat.com/secure/ViewProfile.jspa?selectedTab=com.atlassian.pats.pats-plugin:jira-user-personal-access-tokens
+#
+# - jira_special_fields: This section contains the mappings and formats for various Jira fields:
+#   - custom_field_mapping: A dictionary that maps custom field names to their corresponding Jira custom field IDs.
+#     References: https://developer.atlassian.com/platform/forge/manifest-reference/modules/jira-custom-field
+#   - key_format_fields: List of fields that should use the "key" format when creating or updating issues.
+#     These fields usually correspond to unique identifiers within Jira.
+#   - name_format_fields: List of fields that should use the "name" format when creating or updating issues.
+#     These fields are typically user-friendly identifiers.
+#   - post_creation_update_fields: List of fields required to update as post issue creation.
+#
+# You can collect the fields for your project using:
+# - https://issues.redhat.com/rest/api/2/field
+# - One of your project issues.
+#   For example: https://issues.redhat.com/rest/api/2/issue/<your_issue_key>

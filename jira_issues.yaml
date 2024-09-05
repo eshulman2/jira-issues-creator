@@ -1,0 +1,74 @@
+# jira_issues.yaml
+# ----------------
+# This file contains a structured example of Jira issues,
+# demonstrating how to create epics, stories, tasks, and sub-tasks.
+# It also shows the usage of various Jira fields and how to link issues together.
+# Reference: https://issues.redhat.com/rest/api/2/field
+
+# Define the Jira project key where the epics and issues will be created
+project_key: <YOUR_JIRA_PROJECT_KEY>
+
+# Define epics with nested stories, tasks, and sub-tasks
+epics:
+  - summary: "Epic 1 - Demo of Hierarchical Issue Creation"
+    epicName: "Test Epic 1"  # The name of the epic in Jira
+    issuetype: "Epic"  # Issue type for Jira
+    description: |
+      This epic demonstrates hierarchical issue creation in Jira. It includes nested stories, tasks, and sub-tasks
+      linked together to represent a structured project plan.
+
+      The `jira_issues_creator.py` will create the epic "Epic 1" and associate all issues listed here with this epic.
+    issues:
+      - summary: "Story 1 - Demo of a Nested Story"
+        description: |
+          This story is linked to "Epic 1" and includes tasks and sub-tasks to complete the story.
+        issuetype: "Story"  # Issue type for Jira
+        storyPoints: 5  # Story points for Agile estimation
+        issues:
+          - summary: "Task 1 - Demo of a Nested Task"
+            description: |
+              Task 1 involves implementing basic features outlined in Story 1.
+              It is assigned to user1 and has Normal priority.
+
+              This task is part of "Epic 1" and is linked to "Story 1".
+            issuetype: "Task"  # Issue type for Jira
+            assignee: "user1"  # Assignee for the task
+            priority: "Normal"  # Priority level (e.g., Low, Medium, High)
+            originalStoryPoints: 3  # Story points for the task
+            sprint: "SPRINT-1"  # Sprint identifier
+            issues:
+              - summary: "Sub-task 1.1 - Demo of a Nested Sub-task"
+                description: |
+                  Sub-task 1.1 involves writing and executing unit tests for Task 1.
+                issuetype: "Sub-task"  # Issue type for Jira
+                assignee: "user1"  # Assignee for the sub-task
+                priority: "Minor"  # Priority level
+
+          - summary: "Task 2 - Demo of Another Task under Story 1"
+            issuetype: "Task"  # Issue type for Jira
+            assignee: "user2"  # Assignee for the task
+            priority: "Normal"  # Priority level
+
+# Define standalone issues
+issues:
+  - summary: "Issue 1 - Demo of an Issue Creation"
+    description: |
+      Create a Story and link it to the epic using the `epicLink` field.
+    issuetype: "Story"  # Issue type for Jira
+    epicLink: "EPIC-KEY"  # Key of the epic to which this story will be linked
+    assignee: "user3"  # Assignee for the story
+    priority: "High"  # Priority level
+    issues:
+      - summary: "Issue 2 - Demo of an Issue with a Link to 'Issue 1'"
+        description: |
+          This task is linked to "Story 1" and uses the `issuelinks` field to set a "Related" link to `ISSUE-KEY`.
+        issuetype: "Task"  # Issue type for Jira
+        sprint: "SPRINT-1"  # Sprint identifier
+        issuelinks:
+          - outwardIssue:
+              key: "ISSUE-KEY"  # Key of the related issue
+            type:
+              name: "Related"  # Type of the link (e.g., Blocks, Related)
+
+  - summary: "Issue 3 - Demo of Another Issue Creation"
+    issuetype: "Task"  # Issue type for Jira
