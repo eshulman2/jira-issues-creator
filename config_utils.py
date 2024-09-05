@@ -104,7 +104,7 @@ def setup_logging(level=logging.INFO):
         raise e
 
 
-def get_config_file_path(config_file, default_config_file=''):
+def get_config_file_path(config_file='', default_config_file=''):
     """
     Determine the absolute path of a configuration file.
 
@@ -126,7 +126,7 @@ def get_config_file_path(config_file, default_config_file=''):
     # Determine the directory of the current script
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
-    if config_file == default_config_file:
+    if config_file == default_config_file or config_file == '':
         return os.path.join(script_dir, default_config_file)
     else:
         expanded_path = os.path.expanduser(config_file)

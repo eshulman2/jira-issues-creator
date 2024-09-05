@@ -33,7 +33,7 @@ def main():
                         help=('YAML file containing the list of Jira epics and issues to create.'))
     # Optional arguments
     parser.add_argument('-c', '--jira_config_file',
-                        default=DEFAULT_CONFIG_FILE,
+                        default=get_config_file_path(default_config_file=DEFAULT_CONFIG_FILE),
                         help=('YAML file containing Jira configuration.'))
     parser.add_argument('--debug',
                         action='store_true',
@@ -57,7 +57,7 @@ def main():
                                  jira_token=jira_config['jira_token'],
                                  jira_special_fields=jira_config['jira_special_fields'])
 
-        issues_list_file = get_config_file_path(parsed_args.issues_list_file)
+        issues_list_file = get_config_file_path(config_file=parsed_args.issues_list_file)
         logging.info(
             f'Loading the list of Epics and Issues to create from "{issues_list_file}"')
         issues_list = load_yaml_file(issues_list_file)

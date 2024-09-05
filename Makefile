@@ -60,10 +60,10 @@ uninstall: clean
 
 # Update the tool by pulling the latest changes and reinstalling
 update:
+	make clean
 	@echo "Pulling the latest changes from the repository..."
 	git pull origin main
 	@echo "Reinstalling the tool..."
-	make clean
 	make install
 	@echo "Update complete. Tool is up-to-date."
 
