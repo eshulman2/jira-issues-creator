@@ -78,9 +78,6 @@ def main():
         logging.error(
             f'Missing required key "{e}" in "{parsed_args.issues_list_file}"')
         sys.exit(1)
-    except jira_handler.JiraError as e:
-        logging.error(f'Jira API error occurred: {e}')
-        sys.exit(1)
     except Exception as e:
         logging.error(f'An unexpected error occurred: {e}')
         sys.exit(1)
