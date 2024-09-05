@@ -18,12 +18,14 @@ import logging
 import sys
 from config_utils import setup_logging, load_yaml_file, get_config_file_path
 
+APP_NAME = 'jira-issues-creator'
 DEFAULT_CONFIG_FILE = 'jira_config.yaml'
 
 
 def main():
     # Set the Python command-line parser and setup the arguments
-    parser = argparse.ArgumentParser(description='This tool interacts with the Jira API to create epics and issues based on configuration files.',
+    parser = argparse.ArgumentParser(prog=APP_NAME,
+                                     description='This tool interacts with the Jira API to create epics and issues based on configuration files.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # Required arguments
     parser.add_argument('-l', '--issues_list_file',

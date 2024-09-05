@@ -27,10 +27,7 @@ Managing complex Jira projects often involves creating nested issues like epics,
 
 ## Setup
 
-1. **Clone the Repository**:
-   ```sh
-   $ git clone <repository_url>
-   ```
+1. **Clone the Repository and Navigate to It**:
 
 2. **Install and Set Up the Tool**:
    ```sh
@@ -57,7 +54,7 @@ Managing complex Jira projects often involves creating nested issues like epics,
 
 After installation, use the tool from anywhere with:
    ```sh
-   $ jira-issues-creator [--help] [--jira_config_file JIRA_CONFIG_FILE] [--issues_list_file ISSUES_LIST_FILE] [--debug]
+   $ jira-issues-creator [--help] --issues_list_file ISSUES_LIST_FILE [--jira_config_file JIRA_CONFIG_FILE] [--debug]
    ```
 
 ## Explanation of Files
