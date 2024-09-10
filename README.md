@@ -2,7 +2,7 @@
 
 Jira Issues Creator automates the creation of epics, stories, tasks, and sub-tasks in Jira using structured YAML configuration files. It eliminates manual data entry and ensures consistency through predefined configurations.
 
-For more information and feature requests, visit [SOSQE-1730](https://issues.redhat.com/browse/SOSQE-1730).
+For questions, feature requests, or to report issues, please visit our [GitHub Issues page](https://github.com/imatza-rh/jira-issues-creator/issues). We welcome your feedback and suggestions!
 
 ## Motivation
 
@@ -28,6 +28,10 @@ Managing complex Jira projects often involves creating nested issues like epics,
 ## Setup
 
 1. **Clone the Repository and Navigate to It**:
+   ```sh
+   $ git clone https://github.com/imatza-rh/jira-issues-creator.git
+   $ cd jira-issues-creator
+   ```
 
 2. **Install and Set Up the Tool**:
    ```sh
@@ -36,7 +40,7 @@ Managing complex Jira projects often involves creating nested issues like epics,
    This command:
    - Sets up a Python virtual environment.
    - Installs required dependencies.
-   - Creates a wrapper script `~/.local/bin/` for global tool access.
+   - Creates a wrapper script in `~/.local/bin/` for global tool access.
    - Ensures `~/.local/bin/` is in your PATH.
 
 3. **Configure Jira Settings**:
@@ -55,6 +59,28 @@ Managing complex Jira projects often involves creating nested issues like epics,
 After installation, use the tool from anywhere with:
    ```sh
    $ jira-issues-creator [--help] --issues_list_file ISSUES_LIST_FILE [--jira_config_file JIRA_CONFIG_FILE] [--debug]
+   ```
+
+### Help Menu Output
+
+To see all available options and arguments, run:
+   ```sh
+   $ jira-issues-creator --help
+   ```
+
+The output will be:
+   ```plaintext
+   usage: jira-issues-creator [-h] -l ISSUES_LIST_FILE [-c JIRA_CONFIG_FILE] [--debug]
+
+   Automates the creation of epics, stories, tasks, and sub-tasks in Jira based on YAML configuration files.
+
+   options:
+   -h, --help              Show this help message and exit
+   -l ISSUES_LIST_FILE, --issues_list_file ISSUES_LIST_FILE
+                           Path to the YAML file containing the list of Jira epics and issues to create. (default: None)
+   -c JIRA_CONFIG_FILE, --jira_config_file JIRA_CONFIG_FILE
+                           Path to the YAML file containing Jira configuration. (default: path/to/jira_config.yaml)
+   --debug                 Enable debug-level logging for detailed output. (default: False)
    ```
 
 ## Explanation of Files

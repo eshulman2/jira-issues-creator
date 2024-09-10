@@ -25,19 +25,21 @@ DEFAULT_CONFIG_FILE = 'jira_config.yaml'
 def main():
     # Set the Python command-line parser and setup the arguments
     parser = argparse.ArgumentParser(prog=APP_NAME,
-                                     description='This tool interacts with the Jira API to create epics and issues based on configuration files.',
+                                     description='Automates the creation of epics, stories, tasks, and sub-tasks in Jira based on YAML configuration files.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # Required arguments
     parser.add_argument('-l', '--issues_list_file',
                         required=True,
-                        help=('YAML file containing the list of Jira epics and issues to create.'))
+                        help=('Path to the YAML file containing the list of Jira epics and issues to create.'))
+
     # Optional arguments
     parser.add_argument('-c', '--jira_config_file',
                         default=get_config_file_path(default_config_file=DEFAULT_CONFIG_FILE),
-                        help=('YAML file containing Jira configuration.'))
+                        help=('Path to the YAML file containing Jira configuration.'))
+
     parser.add_argument('--debug',
                         action='store_true',
-                        help=('Enable debug-level logging for more detailed output.'))
+                        help=('Enable debug-level logging for detailed output.'))
     # Parse arguments
     parsed_args = parser.parse_args()
 
