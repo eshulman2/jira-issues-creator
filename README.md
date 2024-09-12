@@ -23,7 +23,7 @@ Managing complex Jira projects often involves creating nested issues like epics,
 ## Requirements
 
 - Python 3
-- Dependencies: `jinja2`, `requests`, `pyyaml` (listed in `requirements.txt`)
+- Dependencies: `jinja2`, `requests`, `pyyaml` (listed in [`requirements.txt`](requirements.txt))
 
 ## Setup
 
@@ -85,14 +85,30 @@ The output will be:
 
 ## Explanation of Files
 
-- **jira_issues_creator.py**: Main script for interacting with Jira.
-- **jira_handler.py**: Module for Jira API interactions.
-- **jira_config.yaml**: Jira instance settings and custom field mappings.
-- **jira_issues.yaml**: Structure of epics, stories, tasks, and sub-tasks to be created.
+- **[`jira_issues_creator.py`](jira_issues_creator.py)**: Main script for interacting with Jira.
+- **[`jira_handler.py`](jira_handler.py)**: Module for Jira API interactions.
+- **[`jira_config.yaml`](jira_config.yaml)**: Jira instance settings and custom field mappings.
+- **[`jira_issues.yaml`](jira_issues.yaml)**: Structure of epics, stories, tasks, and sub-tasks to be created.
 
 ## Example
 
 For detailed examples on configuring [`jira_config.yaml`](jira_config.yaml) and [`jira_issues.yaml`](jira_issues.yaml), refer to the [Example File](example.md).
+
+## Makefile Overview
+
+The provided [`Makefile`](Makefile) simplifies the setup and management of the Jira Issues Creator tool. Below are the main commands available:
+
+### Help Output
+
+To see all available Makefile commands, run `make help`:
+   ```plaintext
+   Usage:
+     make install       Install the tool
+     make clean         Remove the virtual environment and wrapper script
+     make uninstall     Clean up and remove installed files
+     make update        Pull the latest changes and reinstall
+     make help          Display this help message
+   ```
 
 ## Contribution
 
