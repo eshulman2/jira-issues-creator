@@ -177,54 +177,95 @@ class Jira:
 
         raise RuntimeError(f'Project key "{project_key}" not found.')
 
-    def get_board_id_by_project_key(self, project_key: str) -> str:
+    def get_board_ids_by_project_key(self, project_key: str) -> List[str]:
         '''
-        Get the ID of a Jira board by its project key.
-
-        Args:
-            project_key (str): The key of the project.
-
-        Returns:
-            str: The ID of the board.
-
-        Raises:
-            RuntimeError: If no boards are found for the project key.
+        Return **all** Scrum board IDs (type='scrum') for the given project, skipping Kanban boards.
         '''
         project_id = self.get_project_id_by_key(project_key)
-
         search_project_boards_url = f'{self.jira_url}/rest/agile/1.0/board?projectKeyOrId={project_id}'
         response = self.send_request(
             custom_jira_api_base_url=search_project_boards_url, method='get')
 
+        board_ids: List[str] = []
         for board in response.get('values', []):
-            return board['id']
+            if board.get('type') == 'scrum':
+                board_ids.append(str(board['id']))
+            else:
+                logging.debug(f'Skipping board {board["id"]} (type={board["type"]}). It does not support sprints.')
 
-        raise RuntimeError(f'No boards found for project key "{project_key}".')
+        if not board_ids:
+            raise RuntimeError(f'No boards (Scrum) found for project key "{project_key}".')
+        return board_ids
+
+    def get_sprint_id_from_all_boards(self, project_key: str, sprint_name: str) -> Optional[str]:
+        '''
+        Search for a sprint across all Scrum boards in the project.
+        Returns the first matching sprint ID, or None if not found in any board.
+        '''
+        board_ids = self.get_board_ids_by_project_key(project_key)
+        for b_id in board_ids:
+            possible_sprint_id = self.get_sprint_id(b_id, sprint_name)
+            if possible_sprint_id:
+                return possible_sprint_id
+        return None
+
+    def get_board_id_by_project_key(self, project_key: str) -> str:
+        '''
+        (Deprecated) Get the *first* board ID for a project key.
+        Kept for backward compatibility, but it always returns only the first board.
+
+        Raises RuntimeError if no board is found.
+        '''
+        board_ids = self.get_board_ids_by_project_key(project_key)
+        # We just return the first one:
+        return board_ids[0]
 
     def get_sprint_id(self, board_id: str, sprint_name: str) -> Optional[str]:
         '''
-        Get the ID of a sprint by its name and board ID.
-
-        Args:
-            board_id (str): The ID of the board.
-            sprint_name (str): The name of the sprint.
-
-        Returns:
-            Optional[str]: The ID of the sprint or None if not found.
-
-        Notes:
-            This method returns None if the sprint name is not found on the board.
+        Get the ID of a sprint by its name on a given scrum board.
+        - Fetches active and future sprints (to be safe).
+        - Handles pagination if there are more than 50 sprints.
+        - Logs all sprint names to help debug mismatch issues.
         '''
-        search_board_sprints_url = f'{self.jira_url}/rest/agile/1.0/board/{board_id}/sprint'
-        response = self.send_request(
-            custom_jira_api_base_url=search_board_sprints_url, method='get')
+        logging.debug(
+            f'Looking for sprint "{sprint_name}" on board {board_id}, including active/future.'
+        )
+        base_url = f'{self.jira_url}/rest/agile/1.0/board/{board_id}/sprint'
+        states = "active,future"
+        start_at = 0
+        max_results = 50  # default page size
 
-        # Find the sprint ID for the given sprint name
-        for sprint in response.get('values', []):
-            if sprint['name'] == sprint_name:
-                return sprint['id']
+        while True:
+            logging.debug(f'Fetching sprints with startAt={start_at} (page size={max_results})...')
+            response = self.send_request(
+                custom_jira_api_base_url=base_url,
+                method='get',
+                jira_request_data={
+                    "state": states,
+                    "startAt": start_at,
+                    "maxResults": max_results
+                }
+            )
+            sprint_values = response.get('values', [])
+            if sprint_values:
+                logging.debug(f'Found {len(sprint_values)} sprints on this page.')
+                for sprint in sprint_values:
+                    jira_sprint_name = sprint.get('name')
+                    logging.debug(f'Sprint from Jira: "{jira_sprint_name}" [ID={sprint.get("id")}]')
+                    if jira_sprint_name.strip().lower() == sprint_name.strip().lower():
+                        return sprint.get('id')
+            else:
+                logging.debug('No sprints found on this page.')
 
-        logging.error(f'Sprint "{sprint_name}" not found in board.')
+            # Check pagination
+            is_last = response.get('isLast', True)
+            start_at += max_results
+
+            if is_last:
+                break
+
+        # Log an error if the sprint was not found
+        logging.error(f'Sprint "{sprint_name}" not found in board {board_id}.')
         return None
 
     def link_jira_issues(self,
@@ -295,11 +336,8 @@ class Jira:
                     field_value, 'name')
             elif field_name in self.custom_field_mapping:
                 if field_name == "sprint":
-                    project_board_id = self.get_board_id_by_project_key(
-                        jira_project)
                     custom_field_name = self.custom_field_mapping[field_name]
-                    sprint_id = self.get_sprint_id(
-                        project_board_id, field_value)
+                    sprint_id = self.get_sprint_id_from_all_boards(jira_project, field_value)
                     issue_data['fields'][custom_field_name] = sprint_id
                 else:
                     issue_data['fields'][self.custom_field_mapping[field_name]
