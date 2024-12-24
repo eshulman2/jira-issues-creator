@@ -190,8 +190,6 @@ class Jira:
         for board in response.get('values', []):
             if board.get('type') == 'scrum':
                 board_ids.append(str(board['id']))
-            else:
-                logging.debug(f'Skipping board {board["id"]} (type={board["type"]}). It does not support sprints.')
 
         if not board_ids:
             raise RuntimeError(f'No boards (Scrum) found for project key "{project_key}".')
@@ -206,19 +204,11 @@ class Jira:
         for b_id in board_ids:
             possible_sprint_id = self.get_sprint_id(b_id, sprint_name)
             if possible_sprint_id:
+                logging.debug(f'Sprint "{sprint_name}" was found in board {b_id}.')
                 return possible_sprint_id
+
+        logging.error(f'Sprint "{sprint_name}" was not found in the "{project_key}" project.')
         return None
-
-    def get_board_id_by_project_key(self, project_key: str) -> str:
-        '''
-        (Deprecated) Get the *first* board ID for a project key.
-        Kept for backward compatibility, but it always returns only the first board.
-
-        Raises RuntimeError if no board is found.
-        '''
-        board_ids = self.get_board_ids_by_project_key(project_key)
-        # We just return the first one:
-        return board_ids[0]
 
     def get_sprint_id(self, board_id: str, sprint_name: str) -> Optional[str]:
         '''
@@ -248,10 +238,9 @@ class Jira:
             )
             sprint_values = response.get('values', [])
             if sprint_values:
-                logging.debug(f'Found {len(sprint_values)} sprints on this page.')
+                # logging.debug(f'Found {len(sprint_values)} sprints on this page.')
                 for sprint in sprint_values:
                     jira_sprint_name = sprint.get('name')
-                    logging.debug(f'Sprint from Jira: "{jira_sprint_name}" [ID={sprint.get("id")}]')
                     if jira_sprint_name.strip().lower() == sprint_name.strip().lower():
                         return sprint.get('id')
             else:
@@ -264,8 +253,7 @@ class Jira:
             if is_last:
                 break
 
-        # Log an error if the sprint was not found
-        logging.error(f'Sprint "{sprint_name}" not found in board {board_id}.')
+        logging.debug(f'Sprint "{sprint_name}" not found in board {board_id}.')
         return None
 
     def link_jira_issues(self,
