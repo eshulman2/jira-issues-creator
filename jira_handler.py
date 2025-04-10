@@ -49,6 +49,8 @@ class Jira:
             'custom_field_mapping', {})
         self.post_creation_update_fields = jira_special_fields.get(
             'post_creation_update_fields', [])
+        self.array_format_fields = jira_special_fields.get(
+            'array_format_fields', [])
 
         self._validate_credentials()
 
@@ -297,12 +299,16 @@ class Jira:
         # Helper function to transform field values for string or dict
         def transform_field_value(field_value, key_type):
             if isinstance(field_value, dict):
-                return [{key: val} for key, val in field_value]
+                # Fix: use .items() to properly iterate through dictionary key-value pairs
+                return [{key_type: val} for key, val in field_value.items()]
             else:
                 return {key_type: field_value}
 
         # Initializes a new dict for the issue data
         issue_data = {'fields': {}}
+
+        # Get the list of fields that should be formatted as arrays
+        array_fields = getattr(self, 'array_format_fields', [])
 
         for field_name, field_value in fields.items():
             if field_name == 'issues':
@@ -316,12 +322,18 @@ class Jira:
 
             if field_name in self.key_format_fields:
                 # Fields that require 'key' format
-                issue_data['fields'][field_name] = transform_field_value(
-                    field_value, 'key')
+                value = transform_field_value(field_value, 'key')
+                # Ensure array formatting if needed
+                if field_name in array_fields and not isinstance(value, list):
+                    value = [value]
+                issue_data['fields'][field_name] = value
             elif field_name in self.name_format_fields:
                 # Fields that require 'name' format
-                issue_data['fields'][field_name] = transform_field_value(
-                    field_value, 'name')
+                value = transform_field_value(field_value, 'name')
+                # Ensure array formatting if needed
+                if field_name in array_fields and not isinstance(value, list):
+                    value = [value]
+                issue_data['fields'][field_name] = value
             elif field_name in self.custom_field_mapping:
                 if field_name == "sprint":
                     custom_field_name = self.custom_field_mapping[field_name]
@@ -329,13 +341,13 @@ class Jira:
                     issue_data['fields'][custom_field_name] = sprint_id
                 else:
                     issue_data['fields'][self.custom_field_mapping[field_name]
-                                         ] = field_value
-            elif field_name in self.custom_field_mapping['key_format_fields'].keys():
+                                        ] = field_value
+            elif field_name in self.custom_field_mapping.get('key_format_fields', {}):
                 # Custom fields that require 'key' format
                 custom_field_name = self.custom_field_mapping['key_format_fields'][field_name]
                 issue_data['fields'][custom_field_name] = transform_field_value(
                     field_value, 'key')
-            elif field_name in self.custom_field_mapping['name_format_fields'].keys():
+            elif field_name in self.custom_field_mapping.get('name_format_fields', {}):
                 # Custom fields that require 'name' format
                 custom_field_name = self.custom_field_mapping['name_format_fields'][field_name]
                 issue_data['fields'][custom_field_name] = transform_field_value(

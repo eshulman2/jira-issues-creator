@@ -23,7 +23,6 @@ jira_special_fields:
     name_format_fields: {} # Define fields that require "name" format
 
   key_format_fields: # Define fields that require "key" format
-    - components # Field for components
     - fixVersions # Field for fix versions
     - labels # Field for labels
     - project # Field for project
@@ -36,6 +35,13 @@ jira_special_fields:
     - reporter # Field for reporter
     - resolution # Field for resolution
     - status # Field for status
+    - components # Field for components
+
+  array_format_fields:
+    - components
+    - fixVersions
+    - labels
+    - versions
 
   post_creation_update_fields:
     - issuelinks
