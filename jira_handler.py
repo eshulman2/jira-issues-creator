@@ -13,6 +13,9 @@ import json
 import logging
 import requests
 from typing import Optional, Dict, List, Any
+from config_utils import load_yaml_file, get_config_file_path, load_yaml
+import sys
+
 
 MAX_RESPONSE_LOG_SIZE = 2500  # Set a threshold for response DEBUG log size
 
@@ -512,3 +515,29 @@ class Jira:
                 logging.error(
                     f'Failed to process epic: {e}. Ensure all required fields are provided.')
                 raise e
+
+    def jira_issues_creator(self, issue_list):
+        try:
+            issues_list = load_yaml(issue_list)
+
+            # Load the Jira project key
+            if 'project_key' not in issues_list:
+                raise KeyError('project_key')
+            project_key = issues_list['project_key']
+
+            if 'epics' in issues_list:
+                logging.debug(
+                    f'Creating Epics and associated Issues in the "{project_key}" project')
+                self.create_epics_and_issues(project_key, issues_list['epics'])
+
+            if 'issues' in issues_list:
+                logging.debug(f'Creating Issues in the "{project_key}" project')
+                self.create_list_of_jira_issues(project_key, issues_list['issues'])
+
+        except KeyError as e:
+            logging.error(
+                f'Missing required key "{e}" in "{issue_list}"')
+            sys.exit(1)
+        except Exception as e:
+            logging.error(f'An unexpected error occurred: {e}')
+            sys.exit(1)

@@ -198,3 +198,68 @@ def load_yaml_file(yaml_file):
         logging.error(f'An unexpected error occurred: {exc}')
         raise exc
     return loaded_file
+
+
+def load_yaml(yaml_content):
+    '''
+    Load YAML configuration file safely and render Jinja2 templates.
+    Supports Jinja2 variables template.
+
+    Args:
+        yaml (str): YAML to load.
+
+    Returns:
+        dict: Loaded and rendered YAML content as a dictionary.
+
+    Raises:
+        FileNotFoundError: If the YAML file is not found.
+        yaml.YAMLError: If there's an error loading the YAML file.
+        ValueError: If required variables are missing or invalid.
+    '''
+
+    def extract_template_variables(template_content):
+        '''
+        Extract the required variables from a Jinja2 template.
+
+        Args:
+            template_content (str): The content of the Jinja2 template.
+
+        Returns:
+            set: A set of variable names required by the template.
+        '''
+        env = Environment()
+        parsed_content = env.parse(template_content)
+        return meta.find_undeclared_variables(parsed_content)
+
+    try:
+        # First pass: Load YAML to extract variables if present
+        initial_load = yaml.safe_load(yaml_content)
+
+        # Check if there are any template variables in the YAML content
+        required_variables = extract_template_variables(yaml_content)
+
+        if required_variables:
+            # Render Jinja2 template with extracted variables if needed
+            template = Template(yaml_content)
+            variables = initial_load if isinstance(initial_load, dict) else {}
+            rendered_content = template.render(variables)
+        else:
+            rendered_content = yaml_content
+
+        # Second pass: Load YAML from rendered content safely
+        loaded_file = yaml.safe_load(rendered_content)
+    except FileNotFoundError as exc:
+        logging.error(f'Failed to find the YAML file "{yaml_file}"')
+        raise exc
+    except yaml.YAMLError as exc:
+        logging.error(
+            f'Failed to load the YAML file "{yaml_file}": {exc}')
+        raise exc
+    except ValueError as exc:
+        logging.error(f'Validation error: {exc}')
+        raise exc
+    except Exception as exc:
+        logging.error(f'An unexpected error occurred: {exc}')
+        raise exc
+    return loaded_file
+
