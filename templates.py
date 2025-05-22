@@ -1,17 +1,7 @@
-from langchain.prompts import PromptTemplate
-from langchain.prompts.pipeline import PipelinePromptTemplate
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, FewShotChatMessagePromptTemplate
 
-
-introduction = PromptTemplate.from_template("""
+introduction = """
 You are a jira ticket generator. You will be provided with an issue description and you need to create a jira ticket in the proper format.
-""")
-
-create_jira_ticket_template = PromptTemplate.from_template("""
-Please create a jira {ticket_type} in the project {project} for the following issue:
-{issue_description}
-""")
-
-format_jira_ticket_template = PromptTemplate.from_template("""
 Please use yaml format and include the following fields in the jira ticket:
 - summary - which is a short description of the issue
 - description - which is a detailed description of the issue
@@ -23,11 +13,23 @@ Please use yaml format and include the following fields in the jira ticket:
 
 if you are missing any of the above fields, please omit the field in the output.
 Please do not include any other fields in the output.
-""")
+"""
 
-jira_ticket_example_template = PromptTemplate.from_template("""
-Here is an example of a jira ticket in yaml format:
+create_jira_ticket_template = """
+Please create a jira {ticket_type} in the project {project} for the following issue:
+{issue_description}
+"""
 
+fix_jira_ticket_template = """
+Please review the jira ticket you created in the last message and refactor it to include the following changes:
+{issue_description}
+"""
+
+examples = [
+    {
+        "input": "please create a jira Story in the project myproject for the following issue: convert reboot test to run in ansible. the assignee is eshulman and the priority is Normal. the story points are 3.",
+        "output": """
+# Here is a jira ticket in yaml format:
 project_key: "myproject"
 issues:
   - summary: "convert reboot test to run in ansible"
@@ -38,23 +40,71 @@ issues:
     assignee: "eshulman"
     priority: "Normal"
     storyPoints: 3
-""")
-
-full_template = PromptTemplate.from_template("""
-{introduction}
-
-{format}
-
-{example}
-
-{create}
-""")
-
-input_prompt = [
-    ("introduction", introduction),
-    ("format", format_jira_ticket_template),
-    ("example", jira_ticket_example_template),
-    ("create", create_jira_ticket_template)
+        """
+    }
 ]
 
-pipeline_prompt = PipelinePromptTemplate(final_prompt=full_template, pipeline_prompts=input_prompt)
+example_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("human", "{input}"),
+        ("ai", "{output}")
+    ]
+)
+
+few_shot_prompt = FewShotChatMessagePromptTemplate(
+    example_prompt=example_prompt,
+    examples=examples
+)
+
+start_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", introduction),
+        MessagesPlaceholder(variable_name="history"),
+        few_shot_prompt,
+        ("human", create_jira_ticket_template),
+    ]
+)
+
+whats_wrong_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", introduction),
+        MessagesPlaceholder(variable_name="history"),
+        ("human", fix_jira_ticket_template)
+    ]
+)
+
+# format_jira_ticket_template = PromptTemplate.from_template("""
+
+# """)
+
+# jira_ticket_example_template = PromptTemplate.from_template("""
+# Here is an example of a jira ticket in yaml format:
+
+# project_key: "myproject"
+# issues:
+#   - summary: "convert reboot test to run in ansible"
+#     description: |
+#       Convert the reboot test to run in new ansible testing plugin.
+#     issuetype: "Story"
+#     epicLink: "myproject-1234"
+#     assignee: "eshulman"
+#     priority: "Normal"
+#     storyPoints: 3
+# """)
+
+# full_template = PromptTemplate.from_template("""
+# {format}
+
+# {example}
+
+# {create}
+# """)
+
+# input_prompt = [
+#     ("format", format_jira_ticket_template),
+#     ("example", jira_ticket_example_template),
+#     ("create", create_jira_ticket_template)
+# ]
+
+# pipeline_prompt = PipelinePromptTemplate(final_prompt=full_template,
+#                                          pipeline_prompts=input_prompt)

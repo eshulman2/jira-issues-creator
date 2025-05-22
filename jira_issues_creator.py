@@ -19,6 +19,9 @@ import os
 from getpass import getpass
 from config_utils import get_config_file_path, setup_logging, load_yaml_file
 from chat_handler import ChatHandler
+from templates import start_prompt, whats_wrong_prompt, create_jira_ticket_template, fix_jira_ticket_template
+
+
 
 APP_NAME = 'jira-issues-creator'
 DEFAULT_CONFIG_FILE = 'jira_config.yaml'
@@ -73,17 +76,23 @@ def main():
                        ollama=parsed_args.use_ollama)
 
     satisfied = False
+    user_prompt = parsed_args.prompt
+    prompt = start_prompt
+    history_template = create_jira_ticket_template
     while not satisfied:
         response = chat.invoke_chain({"ticket_type": parsed_args.ticket_type,
-                                      "issue_description": parsed_args.prompt,
-                                      "project": parsed_args.jira_project})
-        validation = input(f"""Please review the generated ticket:
-                           {response}
-                           \nAre you satisfied with the ticket? [y/n]: """)
+                                      "issue_description": user_prompt,
+                                      "project": parsed_args.jira_project},
+                                     prompt,
+                                     history_template)
+        validation = input(f"Please review the generated ticket:\n{response.content}\n\nAre you satisfied with the ticket? [y/n]: ")
         if validation.lower() == "y":
             satisfied = True
         else:
             print("Let's try again.")
+            prompt = whats_wrong_prompt
+            history_template = fix_jira_ticket_template
+            user_prompt = input("What changes would you like me to make? : ")
 
     logging.debug('Initializing Jira instance based on the configuration')
     jira = jira_handler.Jira(jira_url=jira_config['jira_url'],
@@ -91,7 +100,7 @@ def main():
                              jira_token=jira_config['jira_token'],
                              jira_special_fields=jira_config['jira_special_fields'])
 
-    jira.jira_issues_creator(response)
+    jira.jira_issues_creator(response.content)
 
 
 if __name__ == "__main__":
